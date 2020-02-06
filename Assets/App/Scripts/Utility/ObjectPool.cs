@@ -1,58 +1,44 @@
-﻿using System.Collections.Generic;
+﻿using UnityEngine;
+using System.Collections.Generic;
 
-public class ObjectPool <T> : System.Object, System.IDisposable where T : class {
-    private List<T> pool = new List<T>();
-    private System.Func<T> create = null;
-    private System.Func<T, bool> isAvailable = null;
-    private System.Action<T> free = null;
-    private int capacity = 0;
+public class ObjectPool {
+    private List<GameObject> pool = new List<GameObject>();
+    private int capcity = 0;
+    private GameObject original;
 
-    public ObjectPool(System.Func<T> create, System.Func<T, bool> isAvailable, System.Action<T> free, int capacity = 0) {
-        this.create = create;
-        this.isAvailable = isAvailable;
-        this.free = free;
-
-        this.capacity = capacity;
-
-        if (this.capacity <= 0) this.capacity = int.MaxValue;
-
-        this.pool = new List<T>(this.capacity);
-	}
-
-    public virtual bool Get(out T o) {
-        for(int i = 0; i < this.pool.Count; ++i) {
-            var item = this.pool[i];
-
-            if(this.isAvailable(item)) {
-                o = item;
-
-                return true;
-			}
+    public ObjectPool(int capacity, GameObject original) {
+        if(capacity <= 0) {
+            this.pool = new List<GameObject>();
+            this.capcity = int.MaxValue;
+        } else {
+            this.pool = new List<GameObject>(capacity);
+            this.capcity = capcity;
         }
 
-        if(this.capacity < this.pool.Count) {
-            var clone = this.create();
+        this.original = original;
+    }
 
-            o = clone;
+    public bool GetItem(out GameObject go) {
+        for(int i = 0; i < this.pool.Count; ++i) {
+            if(this.pool[i].activeSelf == false) {
+                go = this.pool[i];
+
+                return true;
+            }
+        }
+
+        if(this.pool.Count < this.capcity) {
+            GameObject clone = GameObject.Instantiate(this.original);
+
+            this.pool.Add(clone);
+
+            go = clone;
 
             return true;
-		}
+        }
 
-        o = default(T);
+        go = null;
+
         return false;
-	}
-
-    public void Dispose() {
-        for(int i = 0; i < this.pool.Count; ++i) {
-            if(this.pool[i] != null) {
-                this.free(this.pool[i]);
-			}
-		}
-
-        this.pool.Clear();
-        this.pool = null;
-        this.create = null;
-        this.isAvailable = null;
-        this.free = null;
-	}
+    }
 }
