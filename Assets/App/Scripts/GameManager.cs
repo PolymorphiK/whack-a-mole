@@ -5,25 +5,67 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
     public Transform[] holes = new Transform[0];
-    public GameObject mole;
+    public Mole mole;
 
-    void Update() {
-        if(Input.GetKeyDown(KeyCode.Space)) {
-            Transform hole = this.holes[Random.Range(0, this.holes.Length)];
+    private int lastHoleIndex = -1;
 
-            this.mole.transform.position = hole.position;
+    private void Start() {
+        this.mole.onGotWhacked += Mole_onGotWhacked;
 
-            this.StartCoroutine(this.ShowMole());
-        }
+        this.StartCoroutine(this.StartGame());
     }
 
-    IEnumerator ShowMole() {
-        Animator anim = mole.GetComponent<Animator>();
+    private void Mole_onGotWhacked() {
+        Debug.Log("+5 Points!");
 
-        anim.SetTrigger("Show");
+        this.StartCoroutine(this.ResetMole());
+    }
 
-        yield return new WaitForSeconds(1.0F);
+    IEnumerator ResetMole() {
+        this.StopCoroutine("MonitorMole");
 
-        anim.SetTrigger("Hide");
+        yield return new WaitForSeconds(0.5F);
+
+        this.ShowMole();
+    }
+
+    IEnumerator MonitorMole() {
+        yield return new WaitForSeconds(2.0F);
+
+        this.mole.Show(show: false, doDisableCollider: false);
+
+        this.mole.onHidden += Mole_onHidden;
+    }
+
+    private void Mole_onHidden() {
+        this.mole.onHidden -= this.Mole_onHidden;
+
+        this.StartCoroutine(this.ResetMole());
+    }
+
+    IEnumerator StartGame() {
+        Debug.Log("GET READY!");
+
+        yield return new WaitForSeconds(2.0F);
+
+        this.ShowMole();
+    }
+
+    private void ShowMole() {
+        this.mole.ResetState();
+
+        int next = Random.Range(0, this.holes.Length);
+
+        while(next == this.lastHoleIndex) {
+            next = Random.Range(0, this.holes.Length);
+        }
+
+        Transform hole = this.holes[next];
+
+        this.lastHoleIndex = next;
+
+        this.mole.transform.position = hole.position;
+
+        this.StartCoroutine("MonitorMole");
     }
 }
