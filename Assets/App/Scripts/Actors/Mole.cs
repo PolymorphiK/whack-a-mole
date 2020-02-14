@@ -4,6 +4,8 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(EventTrigger), typeof(Animator))]
 public class Mole : MonoBehaviour {
     public Collider collider;
+    public AudioClip[] showAudioClips = new AudioClip[0];
+    public AudioSource sound;
 
     public event System.Action onGotWhacked;
     public event System.Action onHidden;
@@ -30,6 +32,14 @@ public class Mole : MonoBehaviour {
 
     public void OnAnimation_Hide() {
         this.onHidden?.Invoke();
+    }
+
+    public void OnAnimation_Show() {
+        AudioClip clip = this.showAudioClips[Random.Range(0, this.showAudioClips.Length)];
+
+        this.sound.clip = clip;
+
+        this.sound.Play();
     }
 
     /// <summary>

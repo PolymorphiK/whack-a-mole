@@ -2,12 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour {
+public class GameManager : Singleton<GameManager> {
     public Transform[] holes = new Transform[0];
     public Mole mole;
+    public int scoreAmount;
+
+    public event System.Action<int> onScored;
 
     private int lastHoleIndex = -1;
+    private int score;
 
     private void Start() {
         this.mole.onGotWhacked += Mole_onGotWhacked;
@@ -15,8 +20,22 @@ public class GameManager : MonoBehaviour {
         this.StartCoroutine(this.StartGame());
     }
 
+    public int Score {
+        get {
+            return this.score;
+        }
+    }
+
     private void Mole_onGotWhacked() {
         Debug.Log("+5 Points!");
+
+        this.score += this.scoreAmount;
+
+        //        if(this.onScored != null) {
+        //            this.onScored.Invoke(this.score);
+        //       }
+
+        this.onScored?.Invoke(this.score);
 
         this.StartCoroutine(this.ResetMole());
     }
