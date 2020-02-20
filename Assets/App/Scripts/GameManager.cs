@@ -8,6 +8,8 @@ public class GameManager : Singleton<GameManager> {
     public Transform[] holes = new Transform[0];
     public Mole mole;
     public int scoreAmount;
+    public float gameTime = 30.0F;
+    public GameOver gameOver;
 
     public event System.Action<int> onScored;
 
@@ -37,7 +39,7 @@ public class GameManager : Singleton<GameManager> {
 
         this.onScored?.Invoke(this.score);
 
-        this.StartCoroutine(this.ResetMole());
+        this.StartCoroutine("ResetMole");
     }
 
     IEnumerator ResetMole() {
@@ -59,7 +61,7 @@ public class GameManager : Singleton<GameManager> {
     private void Mole_onHidden() {
         this.mole.onHidden -= this.Mole_onHidden;
 
-        this.StartCoroutine(this.ResetMole());
+        this.StartCoroutine("ResetMole");
     }
 
     IEnumerator StartGame() {
@@ -67,7 +69,21 @@ public class GameManager : Singleton<GameManager> {
 
         yield return new WaitForSeconds(2.0F);
 
+        this.StartCoroutine(this.Session());
+
         this.ShowMole();
+    }
+
+    IEnumerator Session() {
+        yield return new WaitForSeconds(this.gameTime);
+
+        Debug.Log("Game Over: You scored " + this.score);
+
+        this.StopAllCoroutines();
+
+        this.mole.Show(show: false, doDisableCollider: true);
+
+        this.gameOver.gameObject.SetActive(true);
     }
 
     private void ShowMole() {
@@ -86,5 +102,13 @@ public class GameManager : Singleton<GameManager> {
         this.mole.transform.position = hole.position;
 
         this.StartCoroutine("MonitorMole");
+    }
+
+    public void Restart() {
+        this.score = 0;
+
+        this.onScored?.Invoke(this.score);
+
+        this.StartCoroutine(this.StartGame());
     }
 }
