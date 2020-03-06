@@ -20,6 +20,15 @@ public class GameManager : Singleton<GameManager> {
         this.mole.onGotWhacked += Mole_onGotWhacked;
 
         this.StartCoroutine(this.StartGame());
+
+        SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+    }
+
+    private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode mode) {
+        if(string.Compare(scene.name, "Game") != 0) {
+            SceneManager.sceneLoaded -= this.SceneManager_sceneLoaded;
+            Destroy(this.gameObject);
+        }
     }
 
     public int Score {
@@ -100,6 +109,7 @@ public class GameManager : Singleton<GameManager> {
         this.lastHoleIndex = next;
 
         this.mole.transform.position = hole.position;
+        this.mole.transform.rotation = hole.rotation;
 
         this.StartCoroutine("MonitorMole");
     }

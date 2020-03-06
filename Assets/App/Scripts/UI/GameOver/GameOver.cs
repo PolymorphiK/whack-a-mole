@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameOver : MonoBehaviour {
     public Text score;
@@ -12,5 +13,9 @@ public class GameOver : MonoBehaviour {
         GameManager.Instance.Restart();
 
         this.gameObject.SetActive(false);
+    }
+
+    public void OnQuit() {
+        SceneManager.LoadScene("Main");
     }
 }
